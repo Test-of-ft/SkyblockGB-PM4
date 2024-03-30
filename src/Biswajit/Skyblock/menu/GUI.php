@@ -16,12 +16,12 @@ use pocketmine\item\ItemTypeIds;
 use pocketmine\block\VanillaBlocks;
 
 use muqsit\invmenu\InvMenu;
-use pocketmine\world\format\io\GlobalItemDataHandlers;
 use pocketmine\inventory\SimpleInventory;
 use pocketmine\data\bedrock\EnchantmentIdMap;
 use muqsit\invmenu\transaction\InvMenuTransaction;
 use muqsit\invmenu\transaction\InvMenuTransactionResult;
 
+use pocketmine\item\ItemFactory;
 use pocketmine\color\Color;
 use pocketmine\math\Vector3;
 use pocketmine\utils\Config;
@@ -82,22 +82,23 @@ class GUI
   public function VisitMenu(Player $player): void
   {
     $menu = $this->DoubleChest;
-    $menu->setName("§bSky§3block");
+    $menu->setName("§bElite§3Games");
     $menu->setListener(
       function (InvMenuTransaction $transaction) use ($menu) : InvMenuTransactionResult 
       {
         $itemIn = $transaction->getIn();
-        $item = $transaction->getItemClicked();
         $itemOut = $transaction->getOut();
         $player = $transaction->getPlayer();
-        $itemInId = $transaction->getIn()->getTypeId();
-        $itemOutId = $transaction->getOut()->getTypeId();
+        $itemInId = $transaction->getIn()->getId();
+        $itemOutId = $transaction->getOut()->getId();
+        $itemInMeta = $transaction->getIn()->getMeta();
         $inv = $transaction->getAction()->getInventory();
+        $itemOutMeta = $transaction->getOut()->getMeta();
         $playerName = $transaction->getPlayer()->getName();
         $itemInName = $transaction->getIn()->getCustomName();
         $itemOutName = $transaction->getOut()->getCustomName();
         
-        if($item->getTypeId() === ItemTypeIds::fromBlockTypeId(VanillaBlocks::MOB_HEAD()->getTypeId()))
+        if($itemOutId === 397 && $itemOutMeta === 3)
         {
           $visitingPlayer = Server::getInstance()->getPlayerExact(str_replace(["§r §b", " §r"], ["", ""], $itemOut->getCustomName()));
           if(!is_null($visitingPlayer))
@@ -105,7 +106,7 @@ class GUI
           $visitingPlayerName = $visitingPlayer->getName();
           if($visitingPlayer instanceof Player)
           {
-            if($this->api->hasSkyblock($visitingPlayerName))
+            if($this->api->haselitegames($visitingPlayerName))
             {
               $worldName = $this->source->getInstance()->getPlayerFile($visitingPlayerName)->get("Island");
               if(!is_null($worldName))
@@ -125,7 +126,22 @@ class GUI
                       }else{
                         $player->sendMessage("§cmaximum number of visitors reached");
                       }
+                    }elseif($this->source->getInstance()->getPlayerFile($visitingPlayerName)->getNested("IslandSettings.FriendsVisit"))
+                     {
+                      $isFriend = false;
+                      if(count($this->source->getInstance()->getPlayerFile($visitingPlayerName)->get("Friends")) >= 1)
+                      {
+                        foreach($this->source->getInstance()->getPlayerFile($visitingPlayerName)->get("Friends") as $friend)
+                        {
+                          if($friend === $playerName)
+                          {
+                            $isFriend = true;
+                             break;
+                          }
+                        }
                       }
+                      if($isFriend)
+                      {
                         if(count($world->getPlayers()) < $this->source->getInstance()->getPlayerFile($visitingPlayerName)->getNested("IslandSettings.MaxVisitors"))
                         {
                           $player->teleport($world->getSpawnLocation());
@@ -148,8 +164,13 @@ class GUI
               }
             }else{
               $player->sendMessage("§can error occurred");
-             }
-        }elseif($transaction->getAction()->getSlot() === 49)
+            }
+          }
+          }
+        }elseif($itemOutId === 262 && $itemOutMeta === 0)
+        {
+          $this->MainGUI($player);
+        }elseif($itemOutId === 331 && $itemOutMeta === 0)
         {
           $player->removeCurrentWindow();
         }
@@ -158,60 +179,60 @@ class GUI
       }
     );
     $inv = $menu->getInventory();
-    $inv->setItem(0, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(1, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(2, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(3, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(4, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(5, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(6, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(7, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(8, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(9, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(10, VanillaItems::AIR());
-    $inv->setItem(11, VanillaItems::AIR());
-    $inv->setItem(12, VanillaItems::AIR());
-    $inv->setItem(13, VanillaItems::AIR());
-    $inv->setItem(14, VanillaItems::AIR());
-    $inv->setItem(15, VanillaItems::AIR());
-    $inv->setItem(16, VanillaItems::AIR());
-    $inv->setItem(17, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(18, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(19, VanillaItems::AIR());
-    $inv->setItem(20, VanillaItems::AIR());
-    $inv->setItem(21, VanillaItems::AIR());
-    $inv->setItem(22, VanillaItems::AIR());
-    $inv->setItem(23, VanillaItems::AIR());
-    $inv->setItem(24, VanillaItems::AIR());
-    $inv->setItem(25, VanillaItems::AIR());
-    $inv->setItem(26, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(27, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(28, VanillaItems::AIR());
-    $inv->setItem(29, VanillaItems::AIR());
-    $inv->setItem(30, VanillaItems::AIR());
-    $inv->setItem(31, VanillaItems::AIR());
-    $inv->setItem(32, VanillaItems::AIR());
-    $inv->setItem(33, VanillaItems::AIR());
-    $inv->setItem(34, VanillaItems::AIR());
-    $inv->setItem(35, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(36, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(37, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(38, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(39, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(40, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(41, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(42, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(43, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(44, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(45, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(46, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(47, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(48, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(49, VanillaBlocks::REDSTONE()->asItem()->setCustomName("§r §cExit §r\n§r §7click to exit the menu §r"));
-    $inv->setItem(50, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(51, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(52, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(53, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
+    $inv->setItem(0, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(1, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(2, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(3, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(4, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(5, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(6, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(7, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(8, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(9, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(10, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(11, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(12, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(13, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(14, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(15, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(16, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(17, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(18, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(19, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(20, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(21, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(22, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(23, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(24, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(25, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(26, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(27, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(28, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(29, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(30, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(31, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(32, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(33, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(34, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(35, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(36, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(37, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(38, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(39, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(40, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(41, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(42, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(43, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(44, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(45, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(46, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(47, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(48, ItemFactory::getInstance()->get(262, 0, 1)->setCustomName("§r §cBack §r\n§r §7click to go back to the privious menu §r"));
+    $inv->setItem(49, ItemFactory::getInstance()->get(331, 0, 1)->setCustomName("§r §cExit §r\n§r §7click to exit the menu §r"));
+    $inv->setItem(50, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(51, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(52, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(53, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
     $i = 0;
     foreach(Server::getInstance()->getOnlinePlayers() as $online)
     {
@@ -221,17 +242,17 @@ class GUI
         {
           $slot = $i + 10;
           $playerName = $online->getName();
-          $inv->setItem($slot, VanillaBlocks::MOB_HEAD()->asItem()->setCustomName("§r §b$playerName §r"));
+          $inv->setItem($slot, ItemFactory::getInstance()->get(397, 3, 1)->setCustomName("§r §b$playerName §r"));
         }elseif($i < 14)
         {
           $slot = $i + 12;
           $playerName = $online->getName();
-          $inv->setItem($slot, VanillaBlocks::MOB_HEAD()->asItem()->setCustomName("§r §b$playerName §r"));
+          $inv->setItem($slot, ItemFactory::getInstance()->get(397, 3, 1)->setCustomName("§r §b$playerName §r"));
         }elseif($i < 21)
         {
           $slot = $i + 14;
           $playerName = $online->getName();
-          $inv->setItem($slot, VanillaBlocks::MOB_HEAD()->asItem()->setCustomName("§r §b$playerName §r"));
+          $inv->setItem($slot, ItemFactory::getInstance()->get(397, 3, 1)->setCustomName("§r §b$playerName §r"));
         }
         $i++;
       }
@@ -243,6 +264,7 @@ class GUI
     }
   }
   
+  
   public function ManageMembersMenu(Player $player)
   {
     $menu = $this->DoubleChest;
@@ -251,19 +273,23 @@ class GUI
       function (InvMenuTransaction $transaction): InvMenuTransactionResult 
       {
         $itemIn = $transaction->getIn();
-        $item = $transaction->getItemClicked();
         $itemOut = $transaction->getOut();
         $player = $transaction->getPlayer();
-        $itemInId = $transaction->getIn()->getTypeId();
-        $itemOutId = $transaction->getOut()->getTypeId();
+        $itemInId = $transaction->getIn()->getId();
+        $itemOutId = $transaction->getOut()->getId();
+        $itemInMeta = $transaction->getIn()->getMeta();
         $inv = $transaction->getAction()->getInventory();
+        $itemOutMeta = $transaction->getOut()->getMeta();
         $itemInName = $transaction->getIn()->getCustomName();
         $itemOutName = $transaction->getOut()->getCustomName();
         
-         if($transaction->getAction()->getSlot() === 49)
+        if($itemOutId === 262 && $itemOutMeta === 0)
+        {
+          $this->SettingsMenu($player);
+        }elseif($itemOutId === 331 && $itemOutMeta === 0)
         {
           $player->removeCurrentWindow();
-        }elseif($item->getTypeId() === ItemTypeIds::fromBlockTypeId(VanillaBlocks::MOB_HEAD()->getTypeId()))
+        }elseif($itemOutId === 397 && $itemOutMeta === 3)
         {
           $member = str_replace(["§r §e", " §r"], ["", ""], $itemOutName);
           $this->ManageMemberMenu($player, $member);
@@ -273,60 +299,60 @@ class GUI
       }
     );
     $inv = $menu->getInventory();
-    $inv->setItem(0, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(1, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(2, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(3, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(4, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(5, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(6, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(7, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(8, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(9, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(10, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(11, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(12, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(13, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(14, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(15, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(16, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(17, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(18, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(19, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(20, VanillaItems::AIR());
-    $inv->setItem(21, VanillaItems::AIR());
-    $inv->setItem(22, VanillaItems::AIR());
-    $inv->setItem(23, VanillaItems::AIR());
-    $inv->setItem(24, VanillaItems::AIR());
-    $inv->setItem(25, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(26, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(27, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(28, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(29, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(30, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(31, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(32, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(33, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(34, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(35, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(36, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(37, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(38, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(39, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(40, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(41, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(42, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(43, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(44, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(45, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(46, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(47, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(48, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(49, VanillaBlocks::REDSTONE()->asItem()->setCustomName("§r §cExit §r\n§r §7click to exit the menu §r"));
-    $inv->setItem(50, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(51, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(52, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(53, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
+    $inv->setItem(0, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(1, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(2, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(3, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(4, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(5, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(6, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(7, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(8, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(9, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(10, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(11, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(12, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(13, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(14, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(15, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(16, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(17, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(18, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(19, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(20, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(21, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(22, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(23, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(24, ItemFactory::getInstance()->get(0, 0, 0));
+    $inv->setItem(25, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(26, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(27, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(28, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(29, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(30, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(31, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(32, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(33, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(34, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(35, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(36, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(37, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(38, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(39, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(40, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(41, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(42, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(43, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(44, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(45, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(46, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(47, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(48, ItemFactory::getInstance()->get(262, 0, 1)->setCustomName("§r §cBack §r\n§r §7click to go back to the privious menu §r"));
+    $inv->setItem(49, ItemFactory::getInstance()->get(331, 0, 1)->setCustomName("§r §cExit §r\n§r §7click to exit the menu §r"));
+    $inv->setItem(50, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(51, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(52, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(53, ItemFactory::getInstance()->get(160, 14, 1)->setCustomName("§r §7 §r"));
     $i = 1;
     $island = $this->api->getSource()->getPlayerFile($player)->get("Island");
     $members = array();
@@ -345,7 +371,7 @@ class GUI
     foreach($members as $member)
     {
       $slot = $i + 19;
-      $inv->setItem($slot, VanillaBlocks::MOB_HEAD()->asItem()->setCustomName("§r §e$member §r"));
+      $inv->setItem($slot, ItemFactory::getInstance()->get(397, 3, 1)->setCustomName("§r §e$member §r"));
     }
     if($this->Window !== "Double-Chest")
     {
@@ -362,20 +388,21 @@ class GUI
       function(InvMenuTransaction $transaction) use($member): InvMenuTransactionResult 
       {
         $itemIn = $transaction->getIn();
-        $item = $transaction->getItemClicked();
         $itemOut = $transaction->getOut();
         $player = $transaction->getPlayer();
-        $itemInId = $transaction->getIn()->getTypeId();
-        $itemOutId = $transaction->getOut()->getTypeId();
+        $itemInId = $transaction->getIn()->getId();
+        $itemOutId = $transaction->getOut()->getId();
+        $itemInMeta = $transaction->getIn()->getMeta();
         $inv = $transaction->getAction()->getInventory();
+        $itemOutMeta = $transaction->getOut()->getMeta();
         $itemInName = $transaction->getIn()->getCustomName();
         $itemOutName = $transaction->getOut()->getCustomName();
         
-         if($transaction->getAction()->getSlot() === 11)
-          {
+        if($itemOutId === 35)
+        {
           if($player->getName() !== $member)
           {
-            if($transaction->getAction()->getSlot() === 15)
+            if($itemOutMeta === 5)
             {
               if($this->api->CoOpPromote($member))
               {
@@ -383,7 +410,7 @@ class GUI
                 $player->sendMessage("§apromoted §e$member §ato §e$role");
                 $player->removeCurrentWindow();
               }
-            }elseif($transaction->getAction()->getSlot() === 11)
+            }elseif($itemOutMeta == 14)
             {
               if($this->api->CoOpDemote($member))
               {
@@ -393,7 +420,7 @@ class GUI
               }
             }
           }
-        }elseif($transaction->getAction()->getSlot() === 13)
+        }elseif($itemOutId === 152)
         {
           if($player->getName() !== $member)
           {
@@ -411,54 +438,56 @@ class GUI
       }
     );
     $inv = $menu->getInventory();
-    $inv->setItem(0, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(1, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(2, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(3, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(4, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(5, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(6, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(7, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(8, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(9, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(10, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
+    $inv->setItem(0, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(1, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(2, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(3, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(4, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(5, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(6, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(7, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(8, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(9, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(10, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
     $demotedRole = array(
-      "Builder" => "-",
-      "Member" => "Builder",
-      "Senior-Member" => "Member",
-      "Co-Owner" => "Senior-Member",
-      "Owner" => "-"
-      );
-    $demoted = $demotedRole[$this->api->getCoOpRole($member)];
-    $inv->setItem(11, GlobalItemDataHandlers::getDeserializer()->deserializeStack(GlobalItemDataHandlers::getUpgrader()->upgradeItemTypeDataInt(35, 14, 1, null))->setCustomName("§r §cDemote §r\n§r §7 §r\n§r §7Demoted Role: §e$demoted §r"));
-    $inv->setItem(12, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(13, GlobalItemDataHandlers::getDeserializer()->deserializeStack(GlobalItemDataHandlers::getUpgrader()->upgradeItemTypeDataInt(152, 0, 1, null))->setCustomName("§r §cRemove §r"));
-    $inv->setItem(14, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
+    "Builder" => "-",
+    "Member" => "Builder",
+    "Senior-Member" => "Member",
+    "Co-Owner" => "Senior-Member",
+    "Owner" => "-"
+);
+$coOpRole = $this->api->getCoOpRole($member);
+$demoted = isset($demotedRole[$coOpRole]) ? $demotedRole[$coOpRole] : "";
+    $inv->setItem(11, ItemFactory::getInstance()->get(35, 14, 1)->setCustomName("§r §cDemote §r\n§r §7 §r\n§r §7Demoted Role: §e$demoted §r"));
+    $inv->setItem(12, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(13, ItemFactory::getInstance()->get(152, 0, 1)->setCustomName("§r §cRemove §r"));
+    $inv->setItem(14, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
     $promotedRole = array(
-      "Builder" => "Member",
-      "Member" => "Senior-Member",
-      "Senior-Member" => "Co-Owner",
-      "Co-Owner" => "-",
-      "Owner" => "-"
-      );
-    $promoted = $promotedRole[$this->api->getCoOpRole($member)];
-    $inv->setItem(15, GlobalItemDataHandlers::getDeserializer()->deserializeStack(GlobalItemDataHandlers::getUpgrader()->upgradeItemTypeDataInt(35, 5, 1, null))->setCustomName("§r §aPromote §r\n§r §7 §r\n§r §7Prmoted Role: §e$promoted §r"));
-    $inv->setItem(16, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(17, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(18, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(19, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(20, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(21, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(22, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(23, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(24, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(25, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
-    $inv->setItem(26, VanillaBlocks::GLASS_PANE()->asItem()->setCustomName("§r §7 §r"));
+    "Builder" => "Member",
+    "Member" => "Senior-Member",
+    "Senior-Member" => "Co-Owner",
+    "Co-Owner" => "-",
+    "Owner" => "-",
+);
+    $coOpRole = $this->api->getCoOpRole($member);
+    $promoted = isset($promotedRole[$coOpRole]) ? $promotedRole[$coOpRole] : null;
+    $inv->setItem(15, ItemFactory::getInstance()->get(35, 5, 1)->setCustomName("§r §aPromote §r\n§r §7 §r\n§r §7Prmoted Role: §e$promoted §r"));
+    $inv->setItem(16, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(17, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(18, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(19, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(20, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(21, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(22, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(23, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(24, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(25, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
+    $inv->setItem(26, ItemFactory::getInstance()->get(160, 3, 1)->setCustomName("§r §7 §r"));
     if($this->Window !== "Single-Chest")
     {
       $menu->send($player);
       $this->Window = "Single-Chest";
     }
-  }
+}
 
 }
